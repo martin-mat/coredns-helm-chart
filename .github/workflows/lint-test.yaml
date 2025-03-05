@@ -46,3 +46,10 @@ jobs:
       - name: Run chart-testing (install)
         run: ct install --target-branch ${{ github.event.repository.default_branch }}
         if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Run cnf-testsuite
+        uses: martin-mat/cnf-testsuite-action@poc
+        with:
+          helm_chart_dir: "charts/coredns"
+          gist_badge_secret: ${{ secrets.CNTI_BADGE}}
+          gist_badge_id: ccb9cc476b5852d93c51a2feb4f9d44e

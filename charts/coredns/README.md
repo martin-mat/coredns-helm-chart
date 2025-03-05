@@ -1,5 +1,7 @@
 # CoreDNS
 
+![badge](https://raw.githubusercontent.com/gist/martin-mat/ccb9cc476b5852d93c51a2feb4f9d44e/raw/cnti_badge.svg)
+
 [CoreDNS](https://coredns.io/) is a DNS server that chains plugins and provides DNS Services
 
 # TL;DR;
