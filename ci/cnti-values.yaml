@@ -1,0 +1,9 @@
+# Values for the CNTi Test Suite run (.github/workflows/cnti.yml).
+#
+# The image runs as the distroless "nonroot" user (uid and gid 65532).
+# Declaring it lets the kubelet enforce it, and is what the Pod Security
+# Standard "restricted" profile requires.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
