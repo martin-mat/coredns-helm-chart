@@ -18,3 +18,4 @@ deployments:
       # Relative to this file.
       helm_directory: ../../charts/coredns
       namespace: coredns-cnti
+# probe
