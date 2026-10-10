@@ -42,7 +42,7 @@ jobs:
 
       # Creates a kind cluster of a control plane and two workers, installs
       # the chart with its defaults, and runs the essential tests.
-      - uses: lfn-cnti/testsuite-action@v1.2.0
+      - uses: lfn-cnti/testsuite-action@9d068e903efc1b2f89bbe2b7b1b5621eefe00c66 # evidence-publishing
         with:
           # A released suite version, bumped on purpose after reading the
           # release notes.
@@ -50,6 +50,10 @@ jobs:
           cnf_config: .github/cnti/cnti-testsuite.yaml
           tests: cert
           badge_branch: badges
+          evidence_repository: ${{ vars.EVIDENCE_REPOSITORY }}
+          evidence_token: ${{ secrets.EVIDENCE_TOKEN }}
+          evidence_files: |
+            .github/cnti/cnti-testsuite.yaml
 
   # Pull requests that change the job or its configuration, and manual runs
   # on other branches: the same steps with a read-only token. The action
