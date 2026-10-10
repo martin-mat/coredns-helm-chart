@@ -42,7 +42,7 @@ jobs:
 
       # Creates a kind cluster of a control plane and two workers, installs
       # the chart with its defaults, and runs the cert tests.
-      - uses: lfn-cnti/testsuite-action@v1.1.0
+      - uses: lfn-cnti/testsuite-action@81a941d534565b6d8f83c72cc1675e43d3a1505e # badge-label-essential
         with:
           # A released suite version, bumped on purpose after reading the
           # release notes.
