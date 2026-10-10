@@ -42,11 +42,12 @@ jobs:
 
       # Creates a kind cluster of a control plane and two workers, installs
       # the chart with its defaults, and runs the essential tests.
-      - uses: lfn-cnti/testsuite-action@9d068e903efc1b2f89bbe2b7b1b5621eefe00c66 # evidence-publishing
+      - uses: lfn-cnti/testsuite-action@c0f5ef8410fc265514e56b8c9f7926aa79032eb6 # evidence-publishing
         with:
           # A released suite version, bumped on purpose after reading the
           # release notes.
           version: v2.2.0
+          binary_url: https://github.com/martin-mat/cnti-evidence-test/releases/download/v2.3.0-evidence.1/cnti-testsuite-v2.3.0-evidence.1.tar.gz
           cnf_config: .github/cnti/cnti-testsuite.yaml
           tests: cert
           badge_branch: badges
