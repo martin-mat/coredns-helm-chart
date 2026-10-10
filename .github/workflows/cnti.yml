@@ -44,7 +44,7 @@ jobs:
 
       # Creates a kind cluster of a control plane and two workers, installs
       # the chart with its defaults, and runs the essential tests.
-      - uses: lfn-cnti/testsuite-action@713da59ec0c3e0e0cdaadf70b587ec4aa08e565a # evidence-attest
+      - uses: lfn-cnti/testsuite-action@8b10f0781ab3e337d93a83ea557ecd00507d017a # evidence-oci
         with:
           # A released suite version, bumped on purpose after reading the
           # release notes.
@@ -54,6 +54,9 @@ jobs:
           tests: cert
           badge_branch: badges
           attest: "true"
+          evidence_oci_ref: ghcr.io/martin-mat/charts/coredns:1.48.3
+          evidence_oci_token: ${{ secrets.EVIDENCE_TOKEN }}
+          evidence_oci_username: martin-mat
           evidence_repository: ${{ vars.EVIDENCE_REPOSITORY }}
           evidence_token: ${{ secrets.EVIDENCE_TOKEN }}
           evidence_files: |
