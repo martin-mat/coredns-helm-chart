@@ -1,10 +1,6 @@
 # CoreDNS
 
-<<<<<<< Updated upstream
-[![CNTi cert](https://github.com/martin-mat/coredns-helm-chart/raw/badges/cnti-badge.svg)](https://github.com/martin-mat/coredns-helm-chart/actions/workflows/cnti.yml)
-=======
-[![CNTi essential](https://github.com/coredns/helm/raw/badges/cnti-badge.svg)](https://github.com/coredns/helm/actions/workflows/cnti.yml)
->>>>>>> Stashed changes
+[![CNTi essential](https://github.com/martin-mat/coredns-helm-chart/raw/badges/cnti-badge.svg)](https://github.com/martin-mat/coredns-helm-chart/actions/workflows/cnti.yml)
 
 [CoreDNS](https://coredns.io/) is a DNS server that chains plugins and provides DNS Services
 
