@@ -32,6 +32,8 @@ jobs:
     timeout-minutes: 30
     permissions:
       # Publishes the badge to the orphan branch `badges`.
+      id-token: write
+      attestations: write
       contents: write
     steps: &essential-steps
       - uses: actions/checkout@v7
@@ -42,7 +44,7 @@ jobs:
 
       # Creates a kind cluster of a control plane and two workers, installs
       # the chart with its defaults, and runs the essential tests.
-      - uses: lfn-cnti/testsuite-action@c0f5ef8410fc265514e56b8c9f7926aa79032eb6 # evidence-publishing
+      - uses: lfn-cnti/testsuite-action@713da59ec0c3e0e0cdaadf70b587ec4aa08e565a # evidence-attest
         with:
           # A released suite version, bumped on purpose after reading the
           # release notes.
@@ -51,6 +53,7 @@ jobs:
           cnf_config: .github/cnti/cnti-testsuite.yaml
           tests: cert
           badge_branch: badges
+          attest: "true"
           evidence_repository: ${{ vars.EVIDENCE_REPOSITORY }}
           evidence_token: ${{ secrets.EVIDENCE_TOKEN }}
           evidence_files: |
