@@ -1,0 +1,8 @@
+---
+# The CoreDNS chart from this checkout (master or the fix), with its defaults.
+config_version: "v2"
+deployments:
+  helm_dirs:
+    - name: coredns
+      helm_directory: ../../charts/coredns
+      namespace: coredns-cnti

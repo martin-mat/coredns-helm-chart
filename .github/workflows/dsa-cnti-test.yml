@@ -1,0 +1,48 @@
+name: CNTi dedicated service account test
+on:
+  push:
+    branches: [dsa-cnti-test]
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {name: "master: dedicated_service_account", ref: upstream-master, tests: dedicated_service_account}
+          - {name: "fix: dedicated_service_account", ref: fix, tests: dedicated_service_account}
+          - {name: "fix: essential", ref: fix, tests: cert}
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Chart from ${{ matrix.ref }}
+        run: |
+          set -euo pipefail
+          if [ "${{ matrix.ref }}" = upstream-master ]; then
+            git remote add upstream https://github.com/coredns/helm.git
+            git fetch -q upstream master
+            git checkout -q upstream/master -- charts/coredns
+          fi
+          grep -E "^version" charts/coredns/Chart.yaml
+      - uses: lfn-cnti/testsuite-action@70536fda55fcb11f4f7463175fe9d57c86b85574 # v1.2.0
+        with:
+          version: v2.3.0
+          cnf_config: .github/cnti-dsa/cnti-testsuite.yaml
+          tests: ${{ matrix.tests }}
+          log_level: info
+          fail_on_failure: "false"
+      - name: Who can read the cluster
+        if: always()
+        run: |
+          set +e
+          kubectl get sa -n coredns-cnti
+          kubectl get pods -n coredns-cnti -o custom-columns=POD:.metadata.name,SA:.spec.serviceAccountName
+          crb=$(kubectl get clusterrolebinding -o json | jq -r '.items[]|select(.subjects[]?.namespace=="coredns-cnti")|.metadata.name' | head -1)
+          kubectl get clusterrolebinding "$crb" -o jsonpath='{.metadata.name}{" -> "}{.subjects}'; echo
+          echo "can the namespace's default account list pods cluster-wide?"
+          kubectl auth can-i list pods --all-namespaces --as=system:serviceaccount:coredns-cnti:default
