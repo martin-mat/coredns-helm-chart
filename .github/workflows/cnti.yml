@@ -44,7 +44,7 @@ jobs:
 
       # Creates a kind cluster of a control plane and two workers, installs
       # the chart with its defaults, and runs the essential tests.
-      - uses: lfn-cnti/testsuite-action@c76e61928b308523ca5ff42fa7ba6ebad5406d41 # evidence stack (#16 rebased on main after #15), suite v2.3.0
+      - uses: lfn-cnti/testsuite-action@ad80d23e013bb81c660f2d968887cca6fe39ac02 # evidence stack (#16, cosign attest --replace), suite v2.3.0
         with:
           # A released suite version, bumped on purpose after reading the
           # release notes.
