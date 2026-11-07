@@ -1,0 +1,110 @@
+# Fork only: verifies the readiness delay and terminationMessagePolicy change. Not for upstream.
+name: Readiness verify (fork)
+on:
+  push:
+    branches: [readiness-verify]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  chart-ci:
+    # Their lint-test steps, against upstream master.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.13.1
+      - run: helm plugin install --version 1.0.2 https://github.com/helm-unittest/helm-unittest
+      - run: |
+          helm repo add cpa https://kubernetes-sigs.github.io/cluster-proportional-autoscaler
+          helm repo update
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - uses: helm/chart-testing-action@v2.8.0
+      - run: |
+          git remote add upstream https://github.com/coredns/helm
+          git fetch -q upstream master
+          ct list-changed --remote upstream --target-branch master
+          helm unittest --strict charts/coredns
+          ct lint --remote upstream --target-branch master
+      - uses: helm/kind-action@v1.15.0
+      - run: ct install --remote upstream --target-branch master
+
+  behaviour:
+    strategy:
+      fail-fast: false
+      matrix:
+        chart: [master, fix]
+    name: ready time and termination message (${{ matrix.chart }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: The chart from upstream master
+        if: matrix.chart == 'master'
+        run: |
+          git remote add upstream https://github.com/coredns/helm
+          git fetch -q upstream master
+          git checkout upstream/master -- charts/coredns
+      - uses: helm/kind-action@v1.15.0
+      - name: "Install with the defaults; time from container start to Ready, three pods"
+        run: |
+          set -euo pipefail
+          helm install cd charts/coredns -n dns --create-namespace --set replicaCount=3 --wait --timeout 5m
+          kubectl -n dns get pods -o json | python3 -c '
+          import json, sys, datetime as dt
+          p = lambda s: dt.datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ")
+          for pod in json.load(sys.stdin)["items"]:
+              st = pod["status"]["containerStatuses"][0]["state"]["running"]["startedAt"]
+              rd = [c["lastTransitionTime"] for c in pod["status"]["conditions"] if c["type"] == "Ready"][0]
+              print(pod["metadata"]["name"], "Ready", (p(rd) - p(st)).total_seconds(), "s after start")'
+          kubectl -n dns get deploy -o jsonpath='{.items[0].spec.template.spec.containers[0].readinessProbe}{"\n"}'
+          echo "nslookup through the Service:"
+          kubectl run -n dns q --image=busybox:1.37 --restart=Never --rm -i --command -- nslookup kubernetes.default.svc.cluster.local "$(kubectl -n dns get svc -o jsonpath='{.items[0].spec.clusterIP}')" | tail -3
+      - name: "A bad Corefile, then a restart: what the status says"
+        run: |
+          set -euo pipefail
+          cm=$(kubectl -n dns get cm -o name | grep coredns | head -1)
+          kubectl -n dns patch $cm --type merge -p '{"data":{"Corefile":".:53 {\n    nosuchplugin\n}\n"}}'
+          pod=$(kubectl -n dns get pod -o name | head -1)
+          kubectl -n dns delete $pod --wait=false
+          sleep 45
+          for p in $(kubectl -n dns get pod -o name); do
+            msg=$(kubectl -n dns get $p -o jsonpath='{.status.containerStatuses[0].lastState.terminated.message}')
+            ec=$(kubectl -n dns get $p -o jsonpath='{.status.containerStatuses[0].lastState.terminated.exitCode}')
+            [ -n "$ec" ] && echo "$p exit $ec, termination message: [${msg}]"
+          done
+          kubectl -n dns get pods
+
+  cnti:
+    strategy:
+      fail-fast: false
+      matrix:
+        chart: [master, fix]
+        test: [cert, reasonable_startup_time, termination_message_policy]
+    name: cnti ${{ matrix.test }} (${{ matrix.chart }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: The chart from upstream master
+        if: matrix.chart == 'master'
+        run: |
+          git remote add upstream https://github.com/coredns/helm
+          git fetch -q upstream master
+          git checkout upstream/master -- charts/coredns
+      - uses: lfn-cnti/testsuite-action@3c0e163cbbdde302cdd9abb9dbe8c2cbd6a72c71 # v1.4.0
+        with:
+          version: v2.4.1
+          cnf_config: .github/cnti/cnti-testsuite.yaml
+          tests: ${{ matrix.test }}
+          fail_on_failure: "false"
